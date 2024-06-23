@@ -13,7 +13,7 @@ def thread(target, args):
     """Creates and starts a new daemon thread."""
     thread = threading.Thread(target=target, args=args)
     thread.daemon = True
-    thread.start()
+    thread.start() # test
 
 
 def send_messages(username):
