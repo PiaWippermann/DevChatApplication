@@ -1,46 +1,64 @@
+# import of required modules
 import socket
-import sys
-import threading
-import queue
-
 import hosts
 import multicast_receiver
 import multicast_sender
 import heartbeat
+import sys
+import threading
+import queue
 
-"""
-create Port for server
-creating TCP Socket for Server
-get the own IP from hosts
-and create a First in First out queue for messages
-"""
-server_port = 10001
+
+server_port = 10001     # Example port number, change as needed
+
+# Create a new TCP socket for the server
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+# Get the server's own IP address from the hosts module
 host_address = (hosts.my_ip, server_port)
+
+# Create a First-In-First-Out (FIFO) queue for storing messages
 fifoQueue = queue.Queue()
 
+# Boolean flag to indicate if the server is running
 server_running = True
 
-def show_participants():
-    """giving information about the current situation"""
-    print(
-        f'\nActive Servers: {hosts.server_list} --> The Leader Server is: {hosts.leader}')
-    print(f'\nActive Clients: {hosts.client_list}')
-    print(f'\nServers Neighbour ==> {hosts.neighbour}\n')
 
+def handle_clients(client, address, username):
+    """
+    Handle received messages from connected clients.
+    
+    Parameters:
+    client (socket): The client socket.
+    address (tuple): The client's address.
+    username (str): The client's username.
+    """
+    while True:
+        try:
+            data = client.recv(hosts.buffer_size)
+            if not data:
+                print(f'Client with Address {address} and Username {username} has disconnected.')
+                fifoQueue.put(f'\nClient with Address {address} and Username {username} has disconnected.\n')
+                break
 
+            username, message = data.decode(hosts.unicode).split(': ', 1)
+            fifoQueue.put(f'{username} said: {message}')
+            print(f'New Message from {username}: {message}')
 
-def thread(target, args):
-    """create and start threads"""
-    thread = threading.Thread(target=target, args=args)
-    thread.daemon = True
-    thread.start()
+        except Exception as e:
+            print(f"An Error occurred: {e}")
+            break
 
+    if client in hosts.client_list:
+        hosts.client_list.remove(client)
+    client.close()
 
 
 def send_data():
-    """send all messages waiting in the Queue to all Clients"""
+    """
+    Send all messages waiting in the queue to all clients.
+    """
     message = ''
     while not fifoQueue.empty():
         message += f'{fifoQueue.get()}'
@@ -51,37 +69,23 @@ def send_data():
             member.send(message.encode(hosts.unicode))
 
 
-
-def handle_clients(client, address, username):
-    """handle all received messages from connected Clients"""
-    while True:
-        try:
-            data = client.recv(hosts.buffer_size)
-            if not data:
-                print(f'{address} ({username}) disconnected')
-                fifoQueue.put(f'\n{address} ({username}) disconnected\n')
-                break
-
-            username, message = data.decode(hosts.unicode).split(': ', 1)
-            fifoQueue.put(f'{username} said: {message}')
-            print(f'New Message from {username}: {message}')
-
-        except Exception as e:
-            print(e)
-            break
-
-    if client in hosts.client_list:
-        hosts.client_list.remove(client)
-    client.close()
-
-
+def show_participants():
+    """
+    Display information about the current server and client situation.
+    """
+    print(
+        f'\nActive Servers: {hosts.server_list} --> The Leader Server is: {hosts.leader}')
+    print(f'\nActive Clients: {hosts.client_list}')
+    print(f'\nServer Neighbour: {hosts.neighbour}\n')
 
 
 def start_binding():
-    """bind the TCP Server Socket and listen for connections"""
+    """
+    Bind the TCP Server Socket and listen for connections.
+    """
     soc.bind(host_address)
     soc.listen()
-    print(f'\nStarting and listening on IP {hosts.my_ip} and on PORT {server_port}')
+    print(f'\nServer started and is listening on IP {hosts.my_ip} and PORT {server_port}')
 
     while server_running:
         try:
@@ -90,19 +94,34 @@ def start_binding():
 
             if data.startswith(b'JOIN'):
                 username = data.decode(hosts.unicode).split(' ', 1)[1]
-                print(f"{username} {address} has joined the chat.")
-                fifoQueue.put(f'\n{username} {address} has joined the chat\n')
+                print(f"Client {username} from {address} has joined the Chat.")
+                fifoQueue.put(f'\nClient {username} from {address} has joined the Chat.\n')
                 hosts.client_list.append(client)
                 thread(handle_clients, (client, address, username))
 
         except Exception as e:
-            print(e)
+            print(f"An Error occurred: {e}")
             break
 
 
+def thread(target, args):
+    """
+    Create and start a new daemon thread.
+
+    Parameters:
+    target (function): The target function is to be executed in the thread.
+    args (tuple): The arguments to be passed to the target function.
+    """
+    thread = threading.Thread(target=target, args=args)
+    thread.daemon = True
+    thread.start()
+
 
 if __name__ == '__main__':
-
+    """
+    The following block of code will only run if this script is executed directly.
+    It will set up the server, handle clients, and manage the server's state.
+    """
     multicast_receiver_exist = multicast_sender.send_req_to_multicast()
 
     if not multicast_receiver_exist:
@@ -133,8 +152,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             server_running = False
             soc.close()
-            print(
-                f'\nClosing Server on IP {hosts.my_ip} with PORT {server_port}')
+            print(f'\nServer on IP {hosts.my_ip} with PORT {server_port} is shutting down.')
             break
 
 

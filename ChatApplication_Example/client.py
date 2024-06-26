@@ -6,7 +6,9 @@ import multicast_sender
 import threading
 from time import sleep
 
+
 server_port = 10001     # Example port number, change as needed
+
 
 def connect(username):
     """
@@ -61,7 +63,7 @@ def receive_messages():
                 sleep(4)
                 connect(username)
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An Error occurred: {e}")
             soc.close()
             break
 
@@ -81,7 +83,7 @@ def send_messages(username):
             soc.send(send_message)
             print(f"Sent message: {message}")
         except Exception as e:
-            print(f"An error occurred while sending your message: {e}")
+            print(f"An Error occurred while sending your Message: {e}")
             soc.close()
             break
 
@@ -119,4 +121,4 @@ if __name__ == '__main__':
             pass
 
     except KeyboardInterrupt:
-        print("\nYou have exited the chat room. Goodbye!")
+        print("\nYou have exited the Chat Room. Goodbye!")
