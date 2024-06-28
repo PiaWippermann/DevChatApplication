@@ -30,8 +30,8 @@ def start_multicast_rec():
        It listens for incoming data packets and responds based on the content of the data,
        handling chat client joins and network topology changes."""
 
-    #sock.bind(server_address)
-    sock.bind((MY_IP, broadcast_port))
+    sock.bind(server_address)
+    #sock.bind((MY_IP, broadcast_port))
     print(f'Listening to messages...')
 
     group = socket.inet_aton(multicast_ip)
