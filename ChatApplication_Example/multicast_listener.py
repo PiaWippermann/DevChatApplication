@@ -20,7 +20,7 @@ server_address = ('', broadcast_port)
 # Create UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Set socket to broadcast and enable reusing addresses
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+#sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 
