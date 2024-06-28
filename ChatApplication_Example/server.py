@@ -1,7 +1,7 @@
 # import of required modules
 import socket
 import hosts
-import multicast_receiver
+import multicast_listener
 import multicast_sender
 import heartbeat
 import sys
@@ -73,8 +73,7 @@ def show_participants():
     """
     Display information about the current server and client situation.
     """
-    print(
-        f'\nActive Servers: {hosts.server_list} --> The Leader Server is: {hosts.leader}')
+    print(f'\nActive Servers: {hosts.server_list} --> The Leader Server is: {hosts.leader}')
     print(f'\nActive Clients: {hosts.client_list}')
     print(f'\nServer Neighbour: {hosts.neighbour}\n')
 
@@ -128,7 +127,7 @@ if __name__ == '__main__':
         hosts.server_list.append(hosts.my_ip)
         hosts.leader = hosts.my_ip
 
-    thread(multicast_receiver.start_multicast_rec, ())
+    thread(multicast_listener.start_multicast_rec, ())
     thread(start_binding, ())
     thread(heartbeat.start_heartbeat, ())
 

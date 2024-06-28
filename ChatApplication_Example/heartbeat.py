@@ -24,6 +24,9 @@ def start_heartbeat():
         hosts.neighbour = leader_election.start_leader_elec(
             hosts.server_list, hosts.my_ip)
         host_address = (hosts.neighbour, server_port)
+        print(f'Heartbeat: Server List {hosts.server_list}')
+
+
 
         if hosts.neighbour:
             sleep(3)

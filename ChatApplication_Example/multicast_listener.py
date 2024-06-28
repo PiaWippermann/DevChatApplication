@@ -5,10 +5,23 @@ import pickle
 
 import hosts
 
+# Listening port
 broadcast_port = 10000
+
+# Local host
+MY_HOST = socket.gethostname()
+MY_IP = socket.gethostbyname(MY_HOST)
+print(MY_HOST)
+print(MY_IP)
+
 multicast_ip = hosts.multicast_address
 server_address = ('', broadcast_port)
+
+# Create UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Set socket to broadcast and enable reusing addresses
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 
 
@@ -17,7 +30,9 @@ def start_multicast_rec():
        It listens for incoming data packets and responds based on the content of the data,
        handling chat client joins and network topology changes."""
 
-    sock.bind(server_address)
+    #sock.bind(server_address)
+    sock.bind((MY_IP, broadcast_port))
+    print(f'Listening to messages...')
 
     group = socket.inet_aton(multicast_ip)
     mreq = struct.pack('4sL', group, socket.INADDR_ANY)
@@ -31,14 +46,12 @@ def start_multicast_rec():
             print(f'\n[MULTICAST RECEIVER {hosts.my_ip}] Received data from {address}\n')
 
             if hosts.leader == hosts.my_ip and pickle.loads(data)[0] == 'JOIN':
-
                 message = pickle.dumps([hosts.leader, ''])
                 sock.sendto(message, address)
                 print(f'[MULTICAST RECEIVER {hosts.my_ip}] Client {address} wants to join the Chat Room\n')
 
             if len(pickle.loads(data)[0]) == 0:
-                hosts.server_list.append(
-                    address[0]) if address[0] not in hosts.server_list else hosts.server_list
+                hosts.server_list.append(address[0]) if address[0] not in hosts.server_list else hosts.server_list
                 sock.sendto('ack'.encode(hosts.unicode), address)
                 hosts.is_network_changed = True
 

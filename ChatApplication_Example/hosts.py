@@ -11,7 +11,7 @@ finally:
 # Configuration variables
 buffer_size = 4096
 unicode = 'utf-8'
-multicast_address = '224.0.0.0'
+multicast_address = '224.1.1.1'
 
 # Initialization of variables
 leader = ''
